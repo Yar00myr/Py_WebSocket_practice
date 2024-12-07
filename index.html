@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vote WebSocket</title>
+</head>
+<body>
+    <h1>Vote for your favorite photo</h1>
+    <form id="vote-form">
+        <label>
+            Choose an option:
+            <select id="vote-select">
+                <option value="photo 1">Photo 1</option>
+                <option value="photo 2">Photo 2</option>
+                <option value="photo 3">Photo 3</option>
+            </select>
+        </label>
+        <button type="submit">Vote</button>
+    </form>
+
+    <h2>Results</h2>
+    <pre id="vote-results"></pre>
+
+    <script>
+        const socket = new WebSocket("ws://localhost:8000/vote");
+        const voteForm = document.getElementById("vote-form");
+        const voteSelect = document.getElementById("vote-select");
+        const voteResults = document.getElementById("vote-results");
+
+        socket.onmessage = (event) => {
+            if (event.data.startsWith("{")) {
+                // JSON response with updated vote counts
+                const votes = JSON.parse(event.data);
+                voteResults.textContent = JSON.stringify(votes, null, 2);
+            } else {
+                // Regular message (vote confirmation)
+                alert(event.data);
+            }
+        };
+
+        voteForm.onsubmit = (event) => {
+            event.preventDefault();
+            const selectedVote = voteSelect.value;
+            socket.send(selectedVote);
+        };
+    </script>
+</body>
+</html>
